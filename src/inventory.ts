@@ -9,6 +9,10 @@ const BUTTON_HL_COLOR = 0xffe6bb;
 const ITEM_COLOR = 0x1be4ff;
 const ITEM_HL_COLOR = 0xbbf7ff;
 
+let selectState: "NONE" | "ABILITY" = "NONE";
+let curSelection: "NONE" | "ABILITY1" | "ABILITY2" | "ABILITY3" | "ABILITY4" =
+  "NONE";
+
 class menuButton extends Phaser.GameObjects.Rectangle {
   label: Phaser.GameObjects.Text;
   constructor(
@@ -131,10 +135,27 @@ export class Inventory extends Phaser.Scene {
       player.abilities[3]
     );
 
+    this.displayAbilityInventory();
+  }
+
+  update() {}
+
+  clearMenu(menu: menuItem[]) {
+    for (const item of menu) {
+      item.label.destroy();
+      item.destroy();
+    }
+    return menu;
+  }
+
+  displayAbilityInventory() {
+    let selectionMenu: menuItem[] = [];
+
     let yPos = this.gameHeight / 10;
     for (let i = 0; i < inventory.abilities.length; i++) {
+      // Creates a new menuItem for all abilities not equipped to players
       if (!player.abilities.includes(inventory.abilities[i])) {
-        new menuItem(
+        const curItem = new menuItem(
           this,
           (this.gameWidth * 1) / 4,
           yPos,
@@ -142,10 +163,19 @@ export class Inventory extends Phaser.Scene {
           this.gameHeight / 20,
           inventory.abilities[i]
         );
+
+        // Destroys all menu item when anyone is clicked
+        curItem.setInteractive();
+        curItem.on("pointerdown", () => {
+          selectionMenu = this.clearMenu(selectionMenu);
+        });
+        selectionMenu.push(curItem);
+
         yPos += (1.5 * this.gameHeight) / 20;
       }
     }
-    new menuItem(
+
+    const exitOption = new menuItem(
       this,
       (this.gameWidth * 1) / 4,
       yPos,
@@ -153,7 +183,11 @@ export class Inventory extends Phaser.Scene {
       this.gameHeight / 20,
       "EXIT"
     );
-  }
 
-  update() {}
+    exitOption.setInteractive();
+    exitOption.on("pointerdown", () => {
+      selectionMenu = this.clearMenu(selectionMenu);
+    });
+    selectionMenu.push(exitOption);
+  }
 }
