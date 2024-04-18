@@ -47,6 +47,10 @@ class menuButton extends Phaser.GameObjects.Rectangle {
       this.fillColor = BUTTON_COLOR;
     });
   }
+
+  centerText() {
+    this.label.setX(this.x - this.label.text.length * 9.5);
+  }
 }
 
 class menuItem extends Phaser.GameObjects.Rectangle {
@@ -88,6 +92,11 @@ class menuItem extends Phaser.GameObjects.Rectangle {
 export class Inventory extends Phaser.Scene {
   gameWidth = game.config.width as number;
   gameHeight = game.config.height as number;
+  abilitySlot1: menuButton | null = null;
+  abilitySlot2: menuButton | null = null;
+  abilitySlot3: menuButton | null = null;
+  abilitySlot4: menuButton | null = null;
+
   preload() {}
 
   create() {
@@ -99,7 +108,7 @@ export class Inventory extends Phaser.Scene {
       0xeeeeee
     );
 
-    const abilitySlot1 = new menuButton(
+    this.abilitySlot1 = new menuButton(
       this,
       (this.gameWidth * 3) / 4,
       this.gameHeight / 2 - (2.25 * this.gameHeight) / 10,
@@ -107,8 +116,12 @@ export class Inventory extends Phaser.Scene {
       this.gameHeight / 10,
       player.abilities[0]
     );
+    this.abilitySlot1.setInteractive();
+    this.abilitySlot1.on("pointerdown", () => {
+      this.selectSlot("ABILITY1");
+    });
 
-    const abilitySlot2 = new menuButton(
+    this.abilitySlot2 = new menuButton(
       this,
       (this.gameWidth * 3) / 4,
       this.gameHeight / 2 - (0.75 * this.gameHeight) / 10,
@@ -116,8 +129,12 @@ export class Inventory extends Phaser.Scene {
       this.gameHeight / 10,
       player.abilities[1]
     );
+    this.abilitySlot2.setInteractive();
+    this.abilitySlot2.on("pointerdown", () => {
+      this.selectSlot("ABILITY2");
+    });
 
-    const abilitySlot3 = new menuButton(
+    this.abilitySlot3 = new menuButton(
       this,
       (this.gameWidth * 3) / 4,
       this.gameHeight / 2 + (0.75 * this.gameHeight) / 10,
@@ -125,8 +142,12 @@ export class Inventory extends Phaser.Scene {
       this.gameHeight / 10,
       player.abilities[2]
     );
+    this.abilitySlot3.setInteractive();
+    this.abilitySlot3.on("pointerdown", () => {
+      this.selectSlot("ABILITY3");
+    });
 
-    const abilitySlot4 = new menuButton(
+    this.abilitySlot4 = new menuButton(
       this,
       (this.gameWidth * 3) / 4,
       this.gameHeight / 2 + (2.25 * this.gameHeight) / 10,
@@ -134,17 +155,51 @@ export class Inventory extends Phaser.Scene {
       this.gameHeight / 10,
       player.abilities[3]
     );
-
-    this.displayAbilityInventory();
+    this.abilitySlot4.setInteractive();
+    this.abilitySlot4.on("pointerdown", () => {
+      this.selectSlot("ABILITY4");
+    });
   }
 
   update() {}
+
+  selectSlot(slot: "NONE" | "ABILITY1" | "ABILITY2" | "ABILITY3" | "ABILITY4") {
+    if (curSelection == "NONE") {
+      this.displayAbilityInventory();
+    }
+    curSelection = slot;
+    console.log(curSelection);
+  }
+
+  swapEquipment(newItem: string) {
+    let oldItem: string = "";
+    let slotToModify: menuButton = this.abilitySlot1!;
+
+    if (curSelection == "NONE") {
+      return;
+    } else if (curSelection == "ABILITY2") {
+      slotToModify = this.abilitySlot2!;
+    } else if (curSelection == "ABILITY3") {
+      slotToModify = this.abilitySlot3!;
+    } else if (curSelection == "ABILITY4") {
+      slotToModify = this.abilitySlot4!;
+    }
+
+    oldItem = slotToModify.label.text;
+    slotToModify.label.text = newItem;
+
+    const equipKey = player.abilities.indexOf(oldItem);
+    player.abilities[equipKey] = newItem;
+    console.log(player.abilities);
+    slotToModify.centerText();
+  }
 
   clearMenu(menu: menuItem[]) {
     for (const item of menu) {
       item.label.destroy();
       item.destroy();
     }
+    curSelection = "NONE";
     return menu;
   }
 
@@ -167,6 +222,7 @@ export class Inventory extends Phaser.Scene {
         // Destroys all menu item when anyone is clicked
         curItem.setInteractive();
         curItem.on("pointerdown", () => {
+          this.swapEquipment(curItem.label.text);
           selectionMenu = this.clearMenu(selectionMenu);
         });
         selectionMenu.push(curItem);
