@@ -2,6 +2,7 @@ import * as Phaser from "phaser";
 import { game } from "./main";
 import player from "./state/player.json";
 import inventory from "./state/inventory.json";
+//const fs = require("fs")
 
 const BUTTON_COLOR = 0xfbbd55;
 const BUTTON_HL_COLOR = 0xffe6bb;
@@ -9,7 +10,7 @@ const BUTTON_HL_COLOR = 0xffe6bb;
 const ITEM_COLOR = 0x1be4ff;
 const ITEM_HL_COLOR = 0xbbf7ff;
 
-let selectState: "NONE" | "ABILITY" = "NONE";
+//let selectState: "NONE" | "ABILITY" = "NONE";
 let curSelection: "NONE" | "ABILITY1" | "ABILITY2" | "ABILITY3" | "ABILITY4" =
   "NONE";
 
@@ -163,6 +164,18 @@ export class Inventory extends Phaser.Scene {
 
   update() {}
 
+  savePlayerEquipment() {
+    /*fs.writeFile("player.json", JSON.stringify(player.abilities), (err) => {
+      if (err) console.log(err);
+      else {
+        console.log("File written successfully\n");
+        console.log("The written has the following contents:");
+        console.log(fs.readFileSync("books.txt", "utf8"));
+      }
+    });*/
+    return;
+  }
+
   selectSlot(slot: "NONE" | "ABILITY1" | "ABILITY2" | "ABILITY3" | "ABILITY4") {
     if (curSelection == "NONE") {
       this.displayAbilityInventory();
@@ -192,6 +205,7 @@ export class Inventory extends Phaser.Scene {
     player.abilities[equipKey] = newItem;
     console.log(player.abilities);
     slotToModify.centerText();
+    this.savePlayerEquipment();
   }
 
   clearMenu(menu: menuItem[]) {
