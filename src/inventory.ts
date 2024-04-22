@@ -1,8 +1,6 @@
 import * as Phaser from "phaser";
 import { game } from "./main";
-import player from "./state/player.json";
-import inventory from "./state/inventory.json";
-//const fs = require("fs")
+import * as SaveState from "./data_manager";
 
 const BUTTON_COLOR = 0xfbbd55;
 const BUTTON_HL_COLOR = 0xffe6bb;
@@ -10,7 +8,6 @@ const BUTTON_HL_COLOR = 0xffe6bb;
 const ITEM_COLOR = 0x1be4ff;
 const ITEM_HL_COLOR = 0xbbf7ff;
 
-//let selectState: "NONE" | "ABILITY" = "NONE";
 let curSelection: "NONE" | "ABILITY1" | "ABILITY2" | "ABILITY3" | "ABILITY4" =
   "NONE";
 
@@ -56,6 +53,7 @@ class menuButton extends Phaser.GameObjects.Rectangle {
 
 class menuItem extends Phaser.GameObjects.Rectangle {
   label: Phaser.GameObjects.Text;
+
   constructor(
     scene: Phaser.Scene,
     xPos: number,
@@ -91,8 +89,12 @@ class menuItem extends Phaser.GameObjects.Rectangle {
 }
 
 export class Inventory extends Phaser.Scene {
+  player: SaveState.BSD_Data = { abilities: [] };
+  inventory: SaveState.BSD_Data = { abilities: [] };
+
   gameWidth = game.config.width as number;
   gameHeight = game.config.height as number;
+
   abilitySlot1: menuButton | null = null;
   abilitySlot2: menuButton | null = null;
   abilitySlot3: menuButton | null = null;
@@ -101,6 +103,12 @@ export class Inventory extends Phaser.Scene {
   preload() {}
 
   create() {
+    // LINE TO REMOVE
+    SaveState.initializeSave();
+    
+    this.player = SaveState.getPlayer();
+    this.inventory = SaveState.getInventory();
+
     this.add.rectangle(
       this.gameWidth / 2,
       this.gameHeight / 2,
@@ -115,7 +123,7 @@ export class Inventory extends Phaser.Scene {
       this.gameHeight / 2 - (2.25 * this.gameHeight) / 10,
       this.gameWidth / 5,
       this.gameHeight / 10,
-      player.abilities[0]
+      this.player.abilities[0]
     );
     this.abilitySlot1.setInteractive();
     this.abilitySlot1.on("pointerdown", () => {
@@ -128,7 +136,7 @@ export class Inventory extends Phaser.Scene {
       this.gameHeight / 2 - (0.75 * this.gameHeight) / 10,
       this.gameWidth / 5,
       this.gameHeight / 10,
-      player.abilities[1]
+      this.player.abilities[1]
     );
     this.abilitySlot2.setInteractive();
     this.abilitySlot2.on("pointerdown", () => {
@@ -141,7 +149,7 @@ export class Inventory extends Phaser.Scene {
       this.gameHeight / 2 + (0.75 * this.gameHeight) / 10,
       this.gameWidth / 5,
       this.gameHeight / 10,
-      player.abilities[2]
+      this.player.abilities[2]
     );
     this.abilitySlot3.setInteractive();
     this.abilitySlot3.on("pointerdown", () => {
@@ -154,7 +162,7 @@ export class Inventory extends Phaser.Scene {
       this.gameHeight / 2 + (2.25 * this.gameHeight) / 10,
       this.gameWidth / 5,
       this.gameHeight / 10,
-      player.abilities[3]
+      this.player.abilities[3]
     );
     this.abilitySlot4.setInteractive();
     this.abilitySlot4.on("pointerdown", () => {
@@ -165,14 +173,8 @@ export class Inventory extends Phaser.Scene {
   update() {}
 
   savePlayerEquipment() {
-    /*fs.writeFile("player.json", JSON.stringify(player.abilities), (err) => {
-      if (err) console.log(err);
-      else {
-        console.log("File written successfully\n");
-        console.log("The written has the following contents:");
-        console.log(fs.readFileSync("books.txt", "utf8"));
-      }
-    });*/
+    SaveState.savePlayer(this.player);
+    SaveState.saveInventory(this.inventory);
     return;
   }
 
@@ -201,11 +203,11 @@ export class Inventory extends Phaser.Scene {
     oldItem = slotToModify.label.text;
     slotToModify.label.text = newItem;
 
-    const equipKey = player.abilities.indexOf(oldItem);
-    player.abilities[equipKey] = newItem;
-    console.log(player.abilities);
+    const equipKey = this.player.abilities.indexOf(oldItem);
+    this.player.abilities[equipKey] = newItem;
     slotToModify.centerText();
     this.savePlayerEquipment();
+    console.log(localStorage.getItem("player"))
   }
 
   clearMenu(menu: menuItem[]) {
@@ -221,16 +223,16 @@ export class Inventory extends Phaser.Scene {
     let selectionMenu: menuItem[] = [];
 
     let yPos = this.gameHeight / 10;
-    for (let i = 0; i < inventory.abilities.length; i++) {
+    for (let i = 0; i < this.inventory.abilities.length; i++) {
       // Creates a new menuItem for all abilities not equipped to players
-      if (!player.abilities.includes(inventory.abilities[i])) {
+      if (!this.player.abilities.includes(this.inventory.abilities[i])) {
         const curItem = new menuItem(
           this,
           (this.gameWidth * 1) / 4,
           yPos,
           this.gameWidth / 5,
           this.gameHeight / 20,
-          inventory.abilities[i]
+          this.inventory.abilities[i]
         );
 
         // Destroys all menu item when anyone is clicked
