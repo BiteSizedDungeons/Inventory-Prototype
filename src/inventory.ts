@@ -105,7 +105,7 @@ export class Inventory extends Phaser.Scene {
   create() {
     // LINE TO REMOVE
     SaveState.initializeSave();
-    
+
     this.player = SaveState.getPlayer();
     this.inventory = SaveState.getInventory();
 
@@ -117,6 +117,35 @@ export class Inventory extends Phaser.Scene {
       0xeeeeee
     );
 
+    const exitButton = this.add.rectangle(
+      this.gameWidth - 90,
+      45,
+      90,
+      45,
+      0xd9462a
+    );
+    this.add.text(this.gameWidth - 90 - 18 * 2, 45 - 15, "EXIT", {
+      fontSize: "32px",
+      color: "#000000",
+    });
+
+    exitButton.setInteractive();
+    exitButton.on("pointerover", () => {
+      exitButton.fillColor = 0xec6c54;
+    });
+    exitButton.on("pointerout", () => {
+      exitButton.fillColor = 0xd9462a;
+    });
+    exitButton.on("pointerdown", () => {
+      console.log("SWITCH");
+    });
+
+    this.initializeAbilitySlots();
+  }
+
+  update() {}
+
+  initializeAbilitySlots() {
     this.abilitySlot1 = new menuButton(
       this,
       (this.gameWidth * 3) / 4,
@@ -170,8 +199,6 @@ export class Inventory extends Phaser.Scene {
     });
   }
 
-  update() {}
-
   savePlayerEquipment() {
     SaveState.savePlayer(this.player);
     SaveState.saveInventory(this.inventory);
@@ -207,7 +234,7 @@ export class Inventory extends Phaser.Scene {
     this.player.abilities[equipKey] = newItem;
     slotToModify.centerText();
     this.savePlayerEquipment();
-    console.log(localStorage.getItem("player"))
+    console.log(localStorage.getItem("player"));
   }
 
   clearMenu(menu: menuItem[]) {
